@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Jadwal Rapat dan Kegiatan</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --primary: #0f5f8f;
+      --primary-dark: #08466d;
+      --secondary: #eaf4fb;
+      --accent: #f6a623;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d9e2ec;
+      --success: #0f8b5f;
+      --danger: #c2410c;
+      --shadow: 0 12px 30px rgba(15, 95, 143, 0.10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #f5f7fb 0%, #eef6fb 100%);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), #1277aa);
+      color: white;
+      padding: 28px 24px;
+      box-shadow: var(--shadow);
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 3vw, 36px);
+      letter-spacing: 0.2px;
+    }
+
+    header p {
+      margin: 0;
+      max-width: 920px;
+      line-height: 1.55;
+      color: #eaf6ff;
+    }
+
+    main {
+      width: min(1400px, 96vw);
+      margin: 24px auto 60px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      color: var(--primary-dark);
+    }
+
+    .hint {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 255px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--text);
+      outline: none;
+      background: #fbfdff;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(15, 95, 143, 0.13);
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: var(--primary-dark);
+    }
+
+    .btn-danger {
+      background: #fff1ed;
+      color: var(--danger);
+      border: 1px solid #fed7c7;
+    }
+
+    .btn-success {
+      background: #eafaf2;
+      color: var(--success);
+      border: 1px solid #bcebd5;
+    }
+
+    .preview-box {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: #fbfdff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 11px 13px;
+      border-radius: 12px;
+      font-size: 14px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.ok {
+      background: #eafaf2;
+      color: #075e3f;
+      border: 1px solid #bcebd5;
+    }
+
+    .status.warn {
+      background: #fff8e6;
+      color: #7a4c00;
+      border: 1px solid #ffe0a3;
+    }
+
+    .db-panel {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .sync-badge.online {
+      background: #eafaf2;
+      color: #075e3f;
+    }
+
+    .sync-badge.offline {
+      background: #fff8e6;
+      color: #7a4c00;
+    }
+
+    .sync-badge.error {
+      background: #fff1ed;
+      color: #c2410c;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .search-input {
+      min-width: 250px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline: none;
+      background: #fbfdff;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+      background: white;
+    }
+
+    th, td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f0f7fc;
+      color: var(--primary-dark);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:hover {
+      background: #fbf6ec;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    .action-cell {
+      white-space: nowrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #eef6fb;
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .calendar-card {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, #ffffff, #eef7fc);
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+
+    .calendar-header h2 {
+      margin: 0;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      background: var(--border);
+      gap: 1px;
+    }
+
+    .day-name, .day-cell {
+      background: white;
+      min-height: 120px;
+      padding: 10px;
+    }
+
+    .day-name {
+      min-height: auto;
+      background: #f0f7fc;
+      color: var(--primary-dark);
+      font-weight: 800;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .day-cell {
+      position: relative;
+    }
+
+    .day-cell.other-month {
+      background: #f8fafc;
+      color: #a1a8b3;
+    }
+
+    .day-number {
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .day-cell.sunday .day-number,
+    .day-cell.national-holiday .day-number {
+      color: #d71920;
+    }
+
+    .day-cell.national-holiday {
+      background: #fff7f7;
+    }
+
+    .day-cell.joint-leave {
+      background-image: radial-gradient(circle at calc(100% - 14px) 14px, #d71920 0 4px, transparent 4.5px);
+    }
+
+    .holiday-note {
+      margin-top: 5px;
+      padding: 5px 6px;
+      border-radius: 8px;
+      background: #ffecec;
+      color: #b91c1c;
+      font-size: 11px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .leave-note {
+      margin-top: 5px;
+      padding: 5px 6px;
+      border-radius: 8px;
+      background: #fff4e6;
+      color: #92400e;
+      font-size: 11px;
+      line-height: 1.25;
+      font-weight: 700;
+      border-left: 4px solid #d71920;
+    }
+
+    .calendar-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 20px 16px;
+      background: linear-gradient(135deg, #ffffff, #eef7fc);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .legend-red-date {
+      color: #d71920;
+      font-weight: 900;
+    }
+
+    .legend-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #d71920;
+      display: inline-block;
+    }
+
+    .today .day-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+    }
+
+    .event-chip {
+      position: relative;
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin: 5px 0;
+      padding: 7px 8px;
+      border-radius: 10px;
+      background: #eaf4fb;
+      color: var(--primary-dark);
+      font-size: 12px;
+      line-height: 1.35;
+      border: 1px solid #cfe6f5;
+      cursor: pointer;
+    }
+
+    .event-chip:hover {
+      background: #fff3da;
+      color: #6b4100;
+      z-index: 5;
+    }
+
+    .event-chip .event-time {
+      font-weight: 800;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .tooltip {
+      position: fixed;
+      max-width: 360px;
+      background: #111827;
+      color: white;
+      padding: 12px 14px;
+      border-radius: 12px;
+      box-shadow: 0 18px 34px rgba(0,0,0,0.25);
+      font-size: 13px;
+      line-height: 1.45;
+      display: none;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .tooltip strong {
+      color: #ffe2a3;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.52);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(720px, 96vw);
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+      padding: 20px;
+    }
+
+    .modal h3 {
+      margin: 0 0 12px;
+      color: var(--primary-dark);
+    }
+
+    .modal-detail {
+      display: grid;
+      gap: 10px;
+      line-height: 1.5;
+    }
+
+    .modal-detail div {
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 24px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1080px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar-grid {
+        grid-template-columns: repeat(7, minmax(95px, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
+        padding: 22px 16px;
+      }
+
+      main {
+        width: min(100% - 20px, 1400px);
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar-grid {
+        display: block;
+        background: transparent;
+      }
+
+      .day-name {
+        display: none;
+      }
+
+      .day-cell {
+        min-height: auto;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 8px;
+      }
+
+      .day-cell.other-month:empty,
+      .day-cell.other-month .day-number:only-child {
+        display: none;
+      }
+    }
+
+    @media print {
+      header, .input-section, .toolbar button, .toolbar-right, footer, .btn-danger, .btn-secondary, .btn-primary, .btn-success {
+        display: none !important;
+      }
+      body {
+        background: white;
+      }
+      main {
+        width: 100%;
+        margin: 0;
+      }
+      .card {
+        box-shadow: none;
+        border: none;
+      }
+      table {
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dashboard Jadwal Rapat dan Kegiatan</h1>
+    <p>Tempel teks undangan rapat/kegiatan, klik <strong>Tambahkan ke Jadwal</strong>, lalu sistem akan membuat resume tabel dan kalender agenda secara otomatis. Data tersimpan di browser melalui localStorage dan akan tetap terakumulasi ketika halaman dibuka kembali.</p>
+  </header>
+
+  <main>
+    <section class="card input-section">
+      <h2>0. Konfigurasi Database Online Google Sheet</h2>
+      <p class="hint">Untuk mode online GitHub Pages + Google Sheet, isi URL Web App Google Apps Script dan Token Akses. Setelah tersambung, data jadwal akan dibaca/ditulis ke Google Sheet. Bila belum diisi, dashboard tetap berjalan dengan penyimpanan lokal browser.</p>
+      <div class="db-panel">
+        <div class="field">
+          <label for="webAppUrl">URL Google Apps Script Web App</label>
+          <input id="webAppUrl" type="url" placeholder="https://script.google.com/macros/s/....../exec" />
+        </div>
+        <div class="field">
+          <label for="apiToken">Token Akses</label>
+          <input id="apiToken" type="password" placeholder="Contoh: token-rahasia-admin" />
+        </div>
+        <div class="button-row" style="margin-top: 0;">
+          <button class="btn-secondary" onclick="saveCloudSettings()">Simpan</button>
+          <button class="btn-primary" onclick="syncFromCloud()">Sinkron</button>
+        </div>
+      </div>
+      <div class="button-row">
+        <span id="syncStatus" class="sync-badge offline">Mode lokal / belum tersambung</span>
+        <button class="btn-secondary" onclick="testCloudConnection()">Tes Koneksi</button>
+      </div>
+    </section>
+
+    <section class="grid-2 input-section">
+      <div class="card">
+        <h2>1. Input Teks Undangan</h2>
+        <p class="hint">Paste isi undangan pada kotak di bawah. Sistem akan mengenali pola Hari/Tanggal, Waktu, Agenda, Tempat, dan Catatan/Keterangan.</p>
+        <textarea id="invitationText" placeholder="Paste teks undangan rapat/kegiatan di sini..."></textarea>
+        <div class="button-row">
+          <button class="btn-secondary" onclick="fillExample()">Isi Contoh</button>
+          <button class="btn-primary" onclick="parseInvitationToPreview()">Baca/Preview Data</button>
+          <button class="btn-success" onclick="addFromText()">Tambahkan ke Jadwal</button>
+          <button class="btn-danger" onclick="clearInput()">Bersihkan Input</button>
+        </div>
+        <div id="status" class="status"></div>
+      </div>
+
+      <div class="card">
+        <h2>2. Preview dan Koreksi Data</h2>
+        <p class="hint">Hasil baca otomatis dapat dikoreksi manual sebelum ditambahkan atau disimpan kembali.</p>
+        <div class="preview-box form-grid">
+          <div class="field">
+            <label for="hari">Hari</label>
+            <input id="hari" type="text" placeholder="Contoh: Selasa" />
+          </div>
+          <div class="field">
+            <label for="tanggal">Tanggal</label>
+            <input id="tanggal" type="date" />
+          </div>
+          <div class="field">
+            <label for="jamMulai">Jam Mulai</label>
+            <input id="jamMulai" type="time" />
+          </div>
+          <div class="field">
+            <label for="jamSelesai">Jam Selesai</label>
+            <input id="jamSelesai" type="time" />
+          </div>
+          <div class="field full">
+            <label for="agenda">Agenda Rapat/Kegiatan</label>
+            <input id="agenda" type="text" placeholder="Agenda rapat/kegiatan" />
+          </div>
+          <div class="field full">
+            <label for="tempat">Tempat Rapat/Kegiatan</label>
+            <input id="tempat" type="text" placeholder="Lokasi/tempat kegiatan" />
+          </div>
+          <div class="field full">
+            <label for="keterangan">Keterangan/Catatan</label>
+            <input id="keterangan" type="text" placeholder="Catatan tambahan" />
+          </div>
+        </div>
+        <div class="button-row">
+          <button class="btn-success" onclick="savePreviewAsEvent()">Simpan Preview ke Jadwal</button>
+          <button class="btn-secondary" onclick="resetPreview()">Reset Preview</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <h2 style="margin: 0;">Resume Tabel Jadwal</h2>
+          <span class="pill" id="eventCount">0 event</span>
+        </div>
+        <div class="toolbar-right">
+          <input class="search-input" id="searchInput" type="text" placeholder="Cari agenda/tempat/keterangan..." oninput="renderAll()" />
+          <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+          <button class="btn-secondary" onclick="window.print()">Cetak</button>
+          <button class="btn-danger" onclick="deleteAllEvents()">Hapus Semua</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Hari</th>
+              <th>Tanggal</th>
+              <th>Jam</th>
+              <th>Tempat Rapat</th>
+              <th>Agenda Rapat</th>
+              <th>Keterangan</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody">
+            <tr><td colspan="8" class="empty">Belum ada data jadwal.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card calendar-card">
+      <div class="calendar-header">
+        <button class="btn-secondary" onclick="changeMonth(-1)">‹ Bulan Sebelumnya</button>
+        <h2 id="calendarTitle">Kalender Agenda</h2>
+        <button class="btn-secondary" onclick="changeMonth(1)">Bulan Berikutnya ›</button>
+      </div>
+      <div class="calendar-legend">
+        <span class="legend-item"><span class="legend-red-date">Angka Merah</span> Minggu/Libur Nasional</span>
+        <span class="legend-item"><span class="legend-dot"></span> Cuti Bersama</span>
+        <span class="legend-item">Keterangan libur/cuti tampil di dalam kotak tanggal</span>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </section>
+  </main>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <div id="modalBackdrop" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal">
+      <h3 id="modalTitle">Detail Event</h3>
+      <div id="modalDetail" class="modal-detail"></div>
+      <div class="button-row" style="justify-content: flex-end;">
+        <button class="btn-secondary" onclick="hideModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Dashboard Jadwal Rapat/Kegiatan — versi awal berbasis HTML, CSS, dan JavaScript. Data tersimpan lokal pada browser pengguna.
+  </footer>
+
+  <script>
+    const STORAGE_KEY = 'dashboardJadwalRapatEvents_v1';
+    const CLOUD_CONFIG_KEY = 'dashboardJadwalRapatCloudConfig_v1';
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const shortDayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+    // Data Hari Libur Nasional dan Cuti Bersama Indonesia 2026 berdasarkan SKB 3 Menteri.
+    const NATIONAL_HOLIDAYS_2026 = {
+      '2026-01-01': 'Tahun Baru 2026 Masehi',
+      '2026-01-16': 'Isra Mikraj Nabi Muhammad SAW',
+      '2026-02-17': 'Tahun Baru Imlek 2577 Kongzili',
+      '2026-03-19': 'Hari Suci Nyepi Tahun Baru Saka 1948',
+      '2026-03-21': 'Hari Raya Idulfitri 1447 H',
+      '2026-03-22': 'Hari Raya Idulfitri 1447 H',
+      '2026-04-03': 'Wafat Yesus Kristus',
+      '2026-04-05': 'Kebangkitan Yesus Kristus / Paskah',
+      '2026-05-01': 'Hari Buruh Internasional',
+      '2026-05-14': 'Kenaikan Yesus Kristus',
+      '2026-05-27': 'Hari Raya Iduladha 1447 H',
+      '2026-05-31': 'Hari Raya Waisak 2570 BE',
+      '2026-06-01': 'Hari Lahir Pancasila',
+      '2026-06-16': '1 Muharam Tahun Baru Islam 1448 H',
+      '2026-08-17': 'Proklamasi Kemerdekaan RI',
+      '2026-08-25': 'Maulid Nabi Muhammad SAW',
+      '2026-12-25': 'Kelahiran Yesus Kristus / Natal'
+    };
+
+    const JOINT_LEAVE_2026 = {
+      '2026-02-16': 'Cuti Bersama Tahun Baru Imlek 2577 Kongzili',
+      '2026-03-18': 'Cuti Bersama Hari Suci Nyepi Tahun Baru Saka 1948',
+      '2026-03-20': 'Cuti Bersama Hari Raya Idulfitri 1447 H',
+      '2026-03-23': 'Cuti Bersama Hari Raya Idulfitri 1447 H',
+      '2026-03-24': 'Cuti Bersama Hari Raya Idulfitri 1447 H',
+      '2026-05-15': 'Cuti Bersama Kenaikan Yesus Kristus',
+      '2026-05-28': 'Cuti Bersama Hari Raya Iduladha 1447 H',
+      '2026-12-24': 'Cuti Bersama Kelahiran Yesus Kristus / Natal'
+    };
+    let events = loadEvents();
+    let currentMonthDate = new Date();
+    let editingId = null;
+    let cloudConfig = loadCloudConfig();
+
+    function fillExample() {
+      document.getElementById('invitationText').value = `Sehubungan dengan telah terpilihnya penyedia jasa konstruksi dan jasa konsultansi MK Pembangunan Gedung Tower 4 ITS, bersama ini kami mengundang bapak/ibu pada:\n\nHari/Tanggal\t:\tSelasa, 2 Juni 2026\nWaktu\t        :\tPk. 14.30 – 16.30 WIB\nAgenda     \t:\tPra-Kick Off Meeting Pembangunan Gedung Tower 4 ITS\nTempat\t\t:\tRuang Sidang Senat, Gedung Rektorat Lt 2 - Kampus ITS Sukolilo Surabaya\n\nCatatan : \nDirektur PT. Pembangunan Perumahan (Persero) Tbk dan PT. Delta Buana Konsultan wajib hadir dengan Tenaga Ahli yang sesuai ditawarkan pada dokumen penawaran (max 5 orang) \n\nDemikian, atas perhatian dan kerjasamanya, kami sampaikan terima kasih.`;
+      showStatus('Contoh teks undangan sudah dimasukkan.', 'ok');
+    }
+
+    function clearInput() {
+      document.getElementById('invitationText').value = '';
+      showStatus('Input teks sudah dibersihkan.', 'ok');
+    }
+
+    function showStatus(message, type = 'ok') {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status show ${type}`;
+      setTimeout(() => {
+        status.className = 'status';
+      }, 4500);
+    }
+
+    function normalizeText(text) {
+      return text
+        .replace(/\r/g, '')
+        .replace(/[\t]+/g, ' ')
+        .replace(/[–—]/g, '-')
+        .replace(/[：]/g, ':')
+        .replace(/\s+\n/g, '\n')
+        .replace(/\n\s+/g, '\n')
+        .trim();
+    }
+
+    function extractField(text, labels) {
+      const labelPattern = labels.map(escapeRegex).join('|');
+      const stopPattern = '(Hari\\s*\\/?\\s*Tanggal|Tanggal|Waktu|Jam|Pukul|Agenda|Acara|Tempat|Lokasi|Catatan|Keterangan|Demikian)';
+      const regex = new RegExp(`(?:${labelPattern})\\s*:?\\s*([\\s\\S]*?)(?=\\n\\s*(?:${stopPattern})\\s*:?|$)`, 'i');
+      const match = text.match(regex);
+      return match ? cleanValue(match[1]) : '';
+    }
+
+    function cleanValue(value) {
+      return value
+        .replace(/^[:\-\s]+/, '')
+        .replace(/\n+/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
+
+    function escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function parseInvitationText(rawText) {
+      const text = normalizeText(rawText);
+      const hariTanggal = extractField(text, ['Hari/Tanggal', 'Hari / Tanggal', 'Hari', 'Tanggal']);
+      const waktu = extractField(text, ['Waktu', 'Jam', 'Pukul']);
+      const agenda = extractField(text, ['Agenda', 'Acara', 'Perihal']);
+      const tempat = extractField(text, ['Tempat', 'Lokasi']);
+      const keterangan = extractField(text, ['Catatan', 'Keterangan']);
+
+      const parsedDate = parseIndonesianDate(hariTanggal || text);
+      const parsedTime = parseTimeRange(waktu || text);
+
+      return {
+        id: editingId || makeId(),
+        hari: parsedDate.hari || '',
+        tanggal: parsedDate.isoDate || '',
+        jamMulai: parsedTime.start || '',
+        jamSelesai: parsedTime.end || '',
+        agenda: agenda || inferAgenda(text),
+        tempat: tempat || '',
+        keterangan: keterangan || '',
+        rawText: rawText,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    function parseIndonesianDate(text) {
+      const months = {
+        januari: 1, jan: 1,
+        februari: 2, feb: 2,
+        maret: 3, mar: 3,
+        april: 4, apr: 4,
+        mei: 5,
+        juni: 6, jun: 6,
+        juli: 7, jul: 7,
+        agustus: 8, agu: 8, agt: 8, aug: 8,
+        september: 9, sep: 9,
+        oktober: 10, okt: 10, oct: 10,
+        november: 11, nov: 11,
+        desember: 12, des: 12, dec: 12
+      };
+
+      const regex = /(Minggu|Senin|Selasa|Rabu|Kamis|Jumat|Sabtu)?\s*,?\s*(\d{1,2})\s+(Januari|Jan|Februari|Feb|Maret|Mar|April|Apr|Mei|Juni|Jun|Juli|Jul|Agustus|Agu|Agt|Aug|September|Sep|Oktober|Okt|Oct|November|Nov|Desember|Des|Dec)\s+(\d{4})/i;
+      const match = text.match(regex);
+      if (!match) {
+        const isoMatch = text.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (isoMatch) {
+          const iso = `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+          const d = new Date(iso + 'T00:00:00');
+          return { hari: dayNames[d.getDay()], isoDate: iso };
+        }
+        return { hari: '', isoDate: '' };
+      }
+
+      const hari = match[1] ? capitalize(match[1]) : '';
+      const day = String(match[2]).padStart(2, '0');
+      const month = String(months[match[3].toLowerCase()]).padStart(2, '0');
+      const year = match[4];
+      const isoDate = `${year}-${month}-${day}`;
+      const dateObj = new Date(isoDate + 'T00:00:00');
+      return { hari: hari || dayNames[dateObj.getDay()], isoDate };
+    }
+
+    function parseTimeRange(text) {
+      const normalized = text
+        .replace(/Pk\.?/gi, '')
+        .replace(/Pukul/gi, '')
+        .replace(/WIB|WITA|WIT/gi, '')
+        .replace(/[–—]/g, '-')
+        .trim();
+
+      const times = normalized.match(/\d{1,2}[.:]\d{2}/g);
+      if (!times || times.length === 0) return { start: '', end: '' };
+      const toTime = (v) => {
+        const [h, m] = v.replace('.', ':').split(':');
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      };
+      return { start: toTime(times[0]), end: times[1] ? toTime(times[1]) : '' };
+    }
+
+    function inferAgenda(text) {
+      const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+      const agendaLike = lines.find(line => /rapat|meeting|koordinasi|sosialisasi|kick off|seminar|workshop|kegiatan/i.test(line));
+      return agendaLike || '';
+    }
+
+    function capitalize(value) {
+      return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+    }
+
+    function parseInvitationToPreview() {
+      const rawText = document.getElementById('invitationText').value;
+      if (!rawText.trim()) {
+        showStatus('Silakan paste teks undangan terlebih dahulu.', 'warn');
+        return null;
+      }
+      const event = parseInvitationText(rawText);
+      setPreview(event);
+      showStatus('Data berhasil dibaca. Silakan cek preview sebelum disimpan.', 'ok');
+      return event;
+    }
+
+    function setPreview(event) {
+      document.getElementById('hari').value = event.hari || '';
+      document.getElementById('tanggal').value = event.tanggal || '';
+      document.getElementById('jamMulai').value = event.jamMulai || '';
+      document.getElementById('jamSelesai').value = event.jamSelesai || '';
+      document.getElementById('agenda').value = event.agenda || '';
+      document.getElementById('tempat').value = event.tempat || '';
+      document.getElementById('keterangan').value = event.keterangan || '';
+    }
+
+    function getPreviewEvent() {
+      const tanggal = document.getElementById('tanggal').value;
+      let hari = document.getElementById('hari').value.trim();
+      if (!hari && tanggal) {
+        hari = dayNames[new Date(tanggal + 'T00:00:00').getDay()];
+      }
+      return {
+        id: editingId || makeId(),
+        hari,
+        tanggal,
+        jamMulai: document.getElementById('jamMulai').value,
+        jamSelesai: document.getElementById('jamSelesai').value,
+        agenda: document.getElementById('agenda').value.trim(),
+        tempat: document.getElementById('tempat').value.trim(),
+        keterangan: document.getElementById('keterangan').value.trim(),
+        rawText: document.getElementById('invitationText').value,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    function validateEvent(event) {
+      if (!event.tanggal) return 'Tanggal belum terbaca/terisi.';
+      if (!event.jamMulai) return 'Jam mulai belum terbaca/terisi.';
+      if (!event.agenda) return 'Agenda belum terbaca/terisi.';
+      if (!event.tempat) return 'Tempat belum terbaca/terisi.';
+      return '';
+    }
+
+    function addFromText() {
+      const parsed = parseInvitationToPreview();
+      if (!parsed) return;
+      savePreviewAsEvent();
+    }
+
+    async function savePreviewAsEvent() {
+      const event = getPreviewEvent();
+      const error = validateEvent(event);
+      if (error) {
+        showStatus(error + ' Silakan koreksi pada kolom preview.', 'warn');
+        return;
+      }
+
+      if (editingId) {
+        events = events.map(item => item.id === editingId ? event : item);
+      } else {
+        events.push(event);
+      }
+
+      sortEvents();
+      saveEvents();
+      renderAll();
+
+      try {
+        await syncUpsertEvent(event);
+        showStatus(editingId ? 'Data jadwal berhasil diperbarui dan tersimpan ke Google Sheet.' : 'Data jadwal berhasil ditambahkan dan tersimpan ke Google Sheet.', 'ok');
+      } catch (cloudError) {
+        updateSyncStatus('Google Sheet gagal diperbarui; data tersimpan lokal', 'error');
+        showStatus('Data tersimpan lokal, tetapi belum berhasil dikirim ke Google Sheet: ' + cloudError.message, 'warn');
+      }
+
+      resetPreview();
+      clearInput();
+      editingId = null;
+      setCalendarToEventMonth(event);
+    }
+
+    function resetPreview() {
+      editingId = null;
+      ['hari', 'tanggal', 'jamMulai', 'jamSelesai', 'agenda', 'tempat', 'keterangan'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+    }
+
+    function makeId() {
+      return 'evt_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+    }
+
+    function loadEvents() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveEvents() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    }
+
+    function loadCloudConfig() {
+      try {
+        return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)) || { webAppUrl: '', apiToken: '' };
+      } catch (error) {
+        return { webAppUrl: '', apiToken: '' };
+      }
+    }
+
+    function saveCloudConfigToStorage() {
+      localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
+    }
+
+    function initCloudSettingsForm() {
+      document.getElementById('webAppUrl').value = cloudConfig.webAppUrl || '';
+      document.getElementById('apiToken').value = cloudConfig.apiToken || '';
+      updateSyncStatus(isCloudConfigured() ? 'Siap sinkron ke Google Sheet' : 'Mode lokal / belum tersambung', isCloudConfigured() ? 'online' : 'offline');
+    }
+
+    function saveCloudSettings() {
+      cloudConfig = {
+        webAppUrl: document.getElementById('webAppUrl').value.trim(),
+        apiToken: document.getElementById('apiToken').value.trim()
+      };
+      saveCloudConfigToStorage();
+      updateSyncStatus(isCloudConfigured() ? 'Konfigurasi tersimpan. Siap sinkron.' : 'Mode lokal / belum tersambung', isCloudConfigured() ? 'online' : 'offline');
+      showStatus('Konfigurasi database online berhasil disimpan pada browser ini.', 'ok');
+    }
+
+    function isCloudConfigured() {
+      return Boolean(cloudConfig.webAppUrl && cloudConfig.apiToken);
+    }
+
+    function updateSyncStatus(message, state = 'offline') {
+      const el = document.getElementById('syncStatus');
+      if (!el) return;
+      el.textContent = message;
+      el.className = `sync-badge ${state}`;
+    }
+
+    async function cloudRequest(action, payload = {}) {
+      if (!isCloudConfigured()) {
+        throw new Error('URL Web App atau Token Akses belum diisi.');
+      }
+
+      const url = cloudConfig.webAppUrl;
+      const body = {
+        action,
+        token: cloudConfig.apiToken,
+        ...payload
+      };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        }
+      });
+
+      const result = await response.json();
+      if (!result.ok) {
+        throw new Error(result.message || 'Permintaan ke Google Sheet gagal.');
+      }
+      return result;
+    }
+
+    async function testCloudConnection() {
+      try {
+        saveCloudSettings();
+        updateSyncStatus('Menguji koneksi...', 'offline');
+        const result = await cloudRequest('ping');
+        updateSyncStatus(result.message || 'Koneksi Google Sheet berhasil.', 'online');
+        showStatus('Koneksi Google Sheet berhasil.', 'ok');
+      } catch (error) {
+        updateSyncStatus('Koneksi gagal: ' + error.message, 'error');
+        showStatus('Koneksi Google Sheet gagal: ' + error.message, 'warn');
+      }
+    }
+
+    async function syncFromCloud() {
+      try {
+        saveCloudSettings();
+        updateSyncStatus('Mengambil data dari Google Sheet...', 'offline');
+        const result = await cloudRequest('list');
+        events = Array.isArray(result.data) ? result.data : [];
+        sortEvents();
+        saveEvents();
+        renderAll();
+        updateSyncStatus(`Tersinkron: ${events.length} event dari Google Sheet`, 'online');
+        showStatus('Data berhasil disinkronkan dari Google Sheet.', 'ok');
+      } catch (error) {
+        updateSyncStatus('Sinkron gagal: ' + error.message, 'error');
+        showStatus('Sinkron gagal. Dashboard tetap memakai data lokal browser. ' + error.message, 'warn');
+      }
+    }
+
+    async function syncUpsertEvent(event) {
+      if (!isCloudConfigured()) return;
+      await cloudRequest('upsert', { event });
+      updateSyncStatus('Data tersimpan ke Google Sheet', 'online');
+    }
+
+    async function syncDeleteEvent(id) {
+      if (!isCloudConfigured()) return;
+      await cloudRequest('delete', { id });
+      updateSyncStatus('Data terhapus dari Google Sheet', 'online');
+    }
+
+    async function syncClearEvents() {
+      if (!isCloudConfigured()) return;
+      await cloudRequest('clear');
+      updateSyncStatus('Semua data Google Sheet dikosongkan', 'online');
+    }
+
+    function sortEvents() {
+      events.sort((a, b) => {
+        const aTime = `${a.tanggal || '9999-12-31'}T${a.jamMulai || '23:59'}`;
+        const bTime = `${b.tanggal || '9999-12-31'}T${b.jamMulai || '23:59'}`;
+        return aTime.localeCompare(bTime);
+      });
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso + 'T00:00:00');
+      return `${String(d.getDate()).padStart(2, '0')} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function formatTime(event) {
+      if (!event.jamMulai && !event.jamSelesai) return '-';
+      if (event.jamMulai && event.jamSelesai) return `${event.jamMulai} - ${event.jamSelesai}`;
+      return event.jamMulai || event.jamSelesai;
+    }
+
+    function filteredEvents() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!q) return [...events];
+      return events.filter(event => [event.hari, event.tanggal, event.jamMulai, event.jamSelesai, event.agenda, event.tempat, event.keterangan]
+        .join(' ')
+        .toLowerCase()
+        .includes(q));
+    }
+
+    function renderTable() {
+      sortEvents();
+      const tbody = document.getElementById('scheduleBody');
+      const data = filteredEvents();
+      document.getElementById('eventCount').textContent = `${events.length} event`;
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty">Belum ada data jadwal atau data tidak sesuai pencarian.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map((event, index) => `
+        <tr>
+          <td class="nowrap">${index + 1}</td>
+          <td>${escapeHtml(event.hari || '-')}</td>
+          <td class="nowrap">${formatDate(event.tanggal)}</td>
+          <td class="nowrap">${formatTime(event)}</td>
+          <td>${escapeHtml(event.tempat || '-')}</td>
+          <td><strong>${escapeHtml(event.agenda || '-')}</strong></td>
+          <td>${escapeHtml(event.keterangan || '-')}</td>
+          <td class="action-cell">
+            <button class="btn-secondary" onclick="editEvent('${event.id}')">Edit</button>
+            <button class="btn-danger" onclick="deleteEvent('${event.id}')">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendarGrid');
+      const year = currentMonthDate.getFullYear();
+      const month = currentMonthDate.getMonth();
+      document.getElementById('calendarTitle').textContent = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+      const today = new Date();
+      const todayIso = toIsoDate(today);
+      let html = shortDayNames.map(day => `<div class="day-name">${day}</div>`).join('');
+
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        const iso = toIsoDate(date);
+        const isOtherMonth = date.getMonth() !== month;
+        const isToday = iso === todayIso;
+        const isSunday = date.getDay() === 0;
+        const holidayLabel = NATIONAL_HOLIDAYS_2026[iso] || '';
+        const jointLeaveLabel = JOINT_LEAVE_2026[iso] || '';
+        const dayEvents = events.filter(event => event.tanggal === iso).sort((a, b) => (a.jamMulai || '').localeCompare(b.jamMulai || ''));
+        const cellClasses = [
+          'day-cell',
+          isOtherMonth ? 'other-month' : '',
+          isToday ? 'today' : '',
+          isSunday ? 'sunday' : '',
+          holidayLabel ? 'national-holiday' : '',
+          jointLeaveLabel ? 'joint-leave' : ''
+        ].filter(Boolean).join(' ');
+
+        html += `
+          <div class="${cellClasses}">
+            <div class="day-number" title="${escapeHtml(holidayLabel || jointLeaveLabel || '')}">${date.getDate()}</div>
+            ${holidayLabel ? `<div class="holiday-note">${escapeHtml(holidayLabel)}</div>` : ''}
+            ${jointLeaveLabel ? `<div class="leave-note">${escapeHtml(jointLeaveLabel)}</div>` : ''}
+            ${dayEvents.map(event => `
+              <button class="event-chip" onclick="showEventModal('${event.id}')" onmousemove="showTooltip(event, '${event.id}')" onmouseleave="hideTooltip()">
+                <span class="event-time">${formatTime(event)}</span>
+                ${escapeHtml(truncate(event.agenda, 48))}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      grid.innerHTML = html;
+    }
+
+    function toIsoDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function changeMonth(delta) {
+      currentMonthDate.setMonth(currentMonthDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function setCalendarToEventMonth(event) {
+      if (!event.tanggal) return;
+      currentMonthDate = new Date(event.tanggal + 'T00:00:00');
+      renderCalendar();
+    }
+
+    function renderAll() {
+      renderTable();
+      renderCalendar();
+    }
+
+    function editEvent(id) {
+      const event = events.find(item => item.id === id);
+      if (!event) return;
+      editingId = id;
+      setPreview(event);
+      document.getElementById('invitationText').value = event.rawText || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showStatus('Data dimuat ke preview. Silakan koreksi lalu klik Simpan Preview ke Jadwal.', 'ok');
+    }
+
+    async function deleteEvent(id) {
+      const event = events.find(item => item.id === id);
+      if (!event) return;
+      if (!confirm(`Hapus jadwal: ${event.agenda}?`)) return;
+      events = events.filter(item => item.id !== id);
+      saveEvents();
+      renderAll();
+
+      try {
+        await syncDeleteEvent(id);
+        showStatus('Data jadwal berhasil dihapus dari lokal dan Google Sheet.', 'ok');
+      } catch (cloudError) {
+        updateSyncStatus('Google Sheet gagal diperbarui; data terhapus lokal', 'error');
+        showStatus('Data terhapus lokal, tetapi belum berhasil dihapus dari Google Sheet: ' + cloudError.message, 'warn');
+      }
+    }
+
+    async function deleteAllEvents() {
+      if (events.length === 0) return;
+      if (!confirm('Yakin menghapus semua data jadwal lokal dan Google Sheet?')) return;
+      events = [];
+      saveEvents();
+      renderAll();
+
+      try {
+        await syncClearEvents();
+        showStatus('Semua data jadwal berhasil dihapus dari lokal dan Google Sheet.', 'ok');
+      } catch (cloudError) {
+        updateSyncStatus('Google Sheet gagal dikosongkan; data lokal sudah kosong', 'error');
+        showStatus('Data lokal sudah kosong, tetapi Google Sheet belum berhasil dikosongkan: ' + cloudError.message, 'warn');
+      }
+    }
+
+    function showTooltip(mouseEvent, id) {
+      const event = events.find(item => item.id === id);
+      if (!event) return;
+      const tooltip = document.getElementById('tooltip');
+      tooltip.innerHTML = `
+        <strong>${escapeHtml(event.agenda || '-')}</strong><br>
+        ${escapeHtml(event.hari || '-')}, ${formatDate(event.tanggal)}<br>
+        Jam: ${formatTime(event)}<br>
+        Tempat: ${escapeHtml(event.tempat || '-')}<br>
+        Keterangan: ${escapeHtml(event.keterangan || '-')}
+      `;
+      tooltip.style.left = Math.min(mouseEvent.clientX + 14, window.innerWidth - 380) + 'px';
+      tooltip.style.top = Math.min(mouseEvent.clientY + 14, window.innerHeight - 220) + 'px';
+      tooltip.style.display = 'block';
+    }
+
+    function hideTooltip() {
+      document.getElementById('tooltip').style.display = 'none';
+    }
+
+    function showEventModal(id) {
+      const event = events.find(item => item.id === id);
+      if (!event) return;
+      document.getElementById('modalTitle').textContent = event.agenda || 'Detail Event';
+      document.getElementById('modalDetail').innerHTML = `
+        <div><strong>Hari/Tanggal:</strong><br>${escapeHtml(event.hari || '-')} / ${formatDate(event.tanggal)}</div>
+        <div><strong>Jam:</strong><br>${formatTime(event)}</div>
+        <div><strong>Tempat:</strong><br>${escapeHtml(event.tempat || '-')}</div>
+        <div><strong>Agenda:</strong><br>${escapeHtml(event.agenda || '-')}</div>
+        <div><strong>Keterangan:</strong><br>${escapeHtml(event.keterangan || '-')}</div>
+      `;
+      document.getElementById('modalBackdrop').classList.add('show');
+    }
+
+    function hideModal() {
+      document.getElementById('modalBackdrop').classList.remove('show');
+    }
+
+    function closeModal(event) {
+      if (event.target.id === 'modalBackdrop') hideModal();
+    }
+
+    function exportCSV() {
+      if (events.length === 0) {
+        showStatus('Belum ada data untuk diekspor.', 'warn');
+        return;
+      }
+      const header = ['No', 'Hari', 'Tanggal', 'Jam Mulai', 'Jam Selesai', 'Tempat Rapat', 'Agenda Rapat', 'Keterangan'];
+      const rows = events.map((event, index) => [
+        index + 1,
+        event.hari,
+        formatDate(event.tanggal),
+        event.jamMulai,
+        event.jamSelesai,
+        event.tempat,
+        event.agenda,
+        event.keterangan
+      ]);
+      const csv = [header, ...rows].map(row => row.map(csvEscape).join(',')).join('\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'jadwal_rapat_kegiatan.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? '');
+      return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function truncate(value, maxLength) {
+      const text = String(value ?? '');
+      return text.length > maxLength ? text.slice(0, maxLength - 1) + '…' : text;
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        hideModal();
+        hideTooltip();
+      }
+    });
+
+    sortEvents();
+    if (events.length > 0) {
+      currentMonthDate = new Date(events[0].tanggal + 'T00:00:00');
+    } else {
+      currentMonthDate = new Date('2026-06-01T00:00:00');
+    }
+    initCloudSettingsForm();
+    renderAll();
+    if (isCloudConfigured()) {
+      syncFromCloud();
+    }
+  </script>
+</body>
+</html>
