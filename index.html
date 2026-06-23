@@ -719,9 +719,11 @@
         <div class="toolbar-left">
           <h2 style="margin: 0;">Resume Tabel Jadwal</h2>
           <span class="pill" id="eventCount">0 event</span>
+          <span class="pill" id="tableFilterInfo">Hari ini + 7 hari</span>
         </div>
         <div class="toolbar-right">
           <input class="search-input" id="searchInput" type="text" placeholder="Cari agenda/tempat/keterangan..." oninput="renderAll()" />
+          <button class="btn-secondary" id="historyToggleButton" onclick="toggleTableHistory()">Tampilkan Semua</button>
           <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
           <button class="btn-secondary" onclick="window.print()">Cetak</button>
           <button class="btn-danger" onclick="deleteAllEvents()">Hapus Semua</button>
@@ -821,6 +823,8 @@
     let currentMonthDate = new Date();
     let editingId = null;
     let cloudConfig = loadCloudConfig();
+    const TABLE_WINDOW_DAYS = 7;
+    let showAllHistory = false;
 
     function fillExample() {
       document.getElementById('invitationText').value = `Sehubungan dengan telah terpilihnya penyedia jasa konstruksi dan jasa konsultansi MK Pembangunan Gedung Tower 4 ITS, bersama ini kami mengundang bapak/ibu pada:\n\nHari/Tanggal\t:\tSelasa, 2 Juni 2026\nWaktu\t        :\tPk. 14.30 – 16.30 WIB\nAgenda     \t:\tPra-Kick Off Meeting Pembangunan Gedung Tower 4 ITS\nTempat\t\t:\tRuang Sidang Senat, Gedung Rektorat Lt 2 - Kampus ITS Sukolilo Surabaya\n\nCatatan : \nDirektur PT. Pembangunan Perumahan (Persero) Tbk dan PT. Delta Buana Konsultan wajib hadir dengan Tenaga Ahli yang sesuai ditawarkan pada dokumen penawaran (max 5 orang) \n\nDemikian, atas perhatian dan kerjasamanya, kami sampaikan terima kasih.`;
@@ -1208,21 +1212,69 @@
 
     function filteredEvents() {
       const q = document.getElementById('searchInput').value.toLowerCase().trim();
-      if (!q) return [...events];
-      return events.filter(event => [event.hari, event.tanggal, event.jamMulai, event.jamSelesai, event.agenda, event.tempat, event.keterangan]
-        .join(' ')
-        .toLowerCase()
-        .includes(q));
+      const todayIso = toIsoDate(new Date());
+      const limitIso = addDaysIso(todayIso, TABLE_WINDOW_DAYS);
+
+      return events.filter(event => {
+        const textMatch = !q || [event.hari, event.tanggal, event.jamMulai, event.jamSelesai, event.agenda, event.tempat, event.keterangan]
+          .join(' ')
+          .toLowerCase()
+          .includes(q);
+
+        if (!textMatch) return false;
+
+        if (showAllHistory) return true;
+
+        // Default Resume Tabel Jadwal hanya menampilkan kegiatan mulai hari ini
+        // sampai 7 hari ke depan berdasarkan tanggal browser saat dashboard dibuka.
+        return isDateInRange(event.tanggal, todayIso, limitIso);
+      });
+    }
+
+    function isDateInRange(isoDate, startIso, endIso) {
+      if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return false;
+      return isoDate >= startIso && isoDate <= endIso;
+    }
+
+    function addDaysIso(startIso, days) {
+      const date = new Date(startIso + 'T00:00:00');
+      date.setDate(date.getDate() + days);
+      return toIsoDate(date);
+    }
+
+    function toggleTableHistory() {
+      showAllHistory = !showAllHistory;
+      renderTable();
+    }
+
+    function updateTableFilterUI(displayedCount) {
+      const button = document.getElementById('historyToggleButton');
+      const info = document.getElementById('tableFilterInfo');
+      if (!button || !info) return;
+
+      if (showAllHistory) {
+        button.textContent = 'Tampilkan Hari Ini + 7 Hari';
+        info.textContent = `Tampil semua histori: ${displayedCount}/${events.length} event`;
+      } else {
+        const todayIso = toIsoDate(new Date());
+        const limitIso = addDaysIso(todayIso, TABLE_WINDOW_DAYS);
+        button.textContent = 'Tampilkan Semua';
+        info.textContent = `Tampil ${formatDate(todayIso)} s.d. ${formatDate(limitIso)}: ${displayedCount}/${events.length} event`;
+      }
     }
 
     function renderTable() {
       sortEvents();
       const tbody = document.getElementById('scheduleBody');
       const data = filteredEvents();
-      document.getElementById('eventCount').textContent = `${events.length} event`;
+      document.getElementById('eventCount').textContent = `${data.length} tampil / ${events.length} total`;
+      updateTableFilterUI(data.length);
 
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty">Belum ada data jadwal atau data tidak sesuai pencarian.</td></tr>';
+        const emptyMessage = showAllHistory
+          ? 'Belum ada data jadwal atau data tidak sesuai pencarian.'
+          : 'Tidak ada jadwal untuk hari ini sampai 7 hari ke depan. Klik Tampilkan Semua untuk melihat histori dan jadwal lainnya.';
+        tbody.innerHTML = `<tr><td colspan="8" class="empty">${emptyMessage}</td></tr>`;
         return;
       }
 
